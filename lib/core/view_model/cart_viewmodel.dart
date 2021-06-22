@@ -16,6 +16,7 @@ class CartViewModel extends GetxController{
 
   double get totalPrice => _totalPrice;
   double _totalPrice = 0.0;
+  var dbHelper = CartDatabaseHelper.db;
 
   CartViewModel(){
     getAllProduct();
@@ -33,32 +34,42 @@ class CartViewModel extends GetxController{
     update();
   }
 
+  getTotalPrice() {
+    for (int i = 0; i < _cartProductModel.length; i++) {
+      _totalPrice += (double.parse(_cartProductModel[i].price)
+          * _cartProductModel[i].quantity);
+      print(_totalPrice);
+      update();
+    }
+  }
+
   addProduct(CartProductModel cartProductModel) async {
-    if(_cartProductModel.length == 0)
-      {
-        var dbHelper = CartDatabaseHelper.db;
-        await dbHelper.insert(cartProductModel);
-      }
-    else {
-      for (int i = 0; i < _cartProductModel.length; i ++) {
-        if (_cartProductModel[i].productId == cartProductModel.productId) {
-          return;
-        }
-        else {
-          var dbHelper = CartDatabaseHelper.db;
-          await dbHelper.insert(cartProductModel);
-        }
+    for (int i = 0; i < _cartProductModel.length; i ++) {
+      if (_cartProductModel[i].productId == cartProductModel.productId) {
+        return;
       }
     }
+    await dbHelper.insert(cartProductModel);
+    _cartProductModel.add(cartProductModel);
+    _totalPrice += (double.parse(cartProductModel.price)
+        * cartProductModel.quantity);
+
     update();
   }
-  getTotalPrice(){
-    for(int i = 0; i < _cartProductModel.length; i++)
-      {
-        _totalPrice += (double.parse(_cartProductModel[i].price)
-            * _cartProductModel[i].quantity);
-        print(_totalPrice);
-        update();
-      }
+
+  increaseQuantity(int i) async{
+    _cartProductModel[i].quantity++;
+    _totalPrice += (double.parse(_cartProductModel[i].price)
+        * _cartProductModel[i].quantity);
+    await dbHelper
+    .updateProduct(_cartProductModel[i]);
+    update();
+  }
+  decreaseQuantity(int i) async{
+    _cartProductModel[i].quantity--;
+    _totalPrice -= (double.parse(_cartProductModel[i].price));
+    await dbHelper
+        .updateProduct(_cartProductModel[i]);
+    update();
   }
 }

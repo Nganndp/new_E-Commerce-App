@@ -9,6 +9,7 @@ class CustomButton extends StatelessWidget {
   final String text;
 
   final Color color;
+  final Color textColor;
 
   final Function onPress;
 
@@ -16,7 +17,9 @@ class CustomButton extends StatelessWidget {
     @required this.onPress,
     this.text = 'Write text ',
     this.color = primaryColor,
+    this.textColor = Colors.white,
   });
+
   @override
   Widget build(BuildContext context) {
     // ignore: deprecated_member_use
@@ -27,12 +30,12 @@ class CustomButton extends StatelessWidget {
       // ignore: prefer_const_constructors
       padding: EdgeInsets.all(16),
       onPressed: onPress,
-      color: primaryColor,
+      color: color,
       // ignore: prefer_const_constructors
       child: CustomText(
         text: text,
         alignment: Alignment.center,
-        color: Colors.white,
+        color: color,
       ),
     );
   }

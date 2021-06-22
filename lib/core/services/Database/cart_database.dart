@@ -51,4 +51,11 @@ class CartDatabaseHelper{
         model.toJson(),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
+
+  updateProduct(CartProductModel model)async{
+    var dbClient = await database;
+    return await dbClient.update(tableCartProduct,model.toJson(),
+    where: '$columnProductId = ?', whereArgs:[model.productId]);
+
+  }
 }

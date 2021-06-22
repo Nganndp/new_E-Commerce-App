@@ -1,10 +1,13 @@
 import 'package:ecommerce_app/constance.dart';
 import 'package:ecommerce_app/core/view_model/cart_viewmodel.dart';
 import 'package:ecommerce_app/model/cart_product_model.dart';
+import 'package:ecommerce_app/view/checkout/checkout_view.dart';
 import 'package:ecommerce_app/view/widgets/custom_button.dart';
 import 'package:ecommerce_app/view/widgets/custom_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/parser.dart';
 import 'package:get/get.dart';
 
 class CartView extends StatelessWidget {
@@ -26,12 +29,25 @@ class CartView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Column(
+        body: GetBuilder<CartViewModel>(
+          init: Get.find(),
+          builder:(controller) => controller.cartProductModel.length == 0
+            ? Column(
+          children:[
+            SvgPicture.asset('assets/images/cart_empty.svg',
+              width: 200, height:200,),
+            SizedBox(
+              height: 20,
+            ),
+            CustomText(text: 'Cart Empty',
+              fontSize: 32,
+              alignment: Alignment.topCenter,
+            )
+          ],)
+       : Column(
       children: [
         Expanded(
-          child: GetBuilder<CartViewModel>(
-            init: CartViewModel(),
-            builder:(controller) => Container(
+          child: Container(
             child: ListView.separated(
               itemBuilder: (context, index) {
                 return Container(
@@ -72,9 +88,15 @@ class CartView extends StatelessWidget {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
-                                        Icons.add,
+                                      GestureDetector (
+
+                                        child:Icon (Icons.add,
                                         color: Colors.black,
+                                      ),
+                                        onTap: ()
+                                          {
+                                            controller.increaseQuantity(index);
+                                          },
                                       ),
                                       SizedBox(
                                         width: 20,
@@ -83,17 +105,23 @@ class CartView extends StatelessWidget {
                                         alignment: Alignment.center,
                                         fontSize: 20,
                                         color: Colors.black,
-                                        text: '1',
+                                        text: controller
+                                            .cartProductModel[index].quantity.toString(),
                                       ),
                                       SizedBox(
                                         width: 20,
                                       ),
-                                      Container(
+                                      GestureDetector(
+                                        onTap: (){
+                                          controller.decreaseQuantity(index);
+                                        },
+                                      child: Container(
                                         padding: EdgeInsets.only(bottom: 20),
                                         child: Icon(
                                           Icons.minimize,
                                           color: Colors.black,
                                         ),
+                                      ),
                                       ),
                                     ],
                                   ))
@@ -112,7 +140,6 @@ class CartView extends StatelessWidget {
             ),
           ),
           ),
-        ),
         Padding(
           padding: const EdgeInsets.only(top: 10, left: 30, right: 30),
           child: Row(
@@ -128,24 +155,28 @@ class CartView extends StatelessWidget {
                   SizedBox(
                     height: 15,
                   ),
-                  CustomText(
-                    text: '200000' + ' \VND',
+              GetBuilder<CartViewModel>(
+                init: Get.find(),
+                builder: (controller)=>CustomText(
+                    text: '${controller.totalPrice}  \VND',
                     fontSize: 18,
                     color: primaryColor,
+                   ),
                   ),
                 ],
               ),
               Container(
                 padding: EdgeInsets.all(10),
                 child: CustomButton(
-                  onPress: () {},
+                  onPress: () {
+                    Get.to(CheckOutView());
+                  },
                   text: 'CHECK OUT',
                 ),
               )
             ],
           ),
-        )
-      ],
-    ));
+        ),
+      ]),),);
     }
 }

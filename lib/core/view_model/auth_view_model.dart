@@ -1,3 +1,5 @@
+import 'package:ecommerce_app/helper/local_storage_data.dart';
+import 'package:ecommerce_app/view/control_view.dart';
 import 'package:ecommerce_app/view/home_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // ignore: unused_import
@@ -26,13 +28,21 @@ class AuthViewModel extends GetxController {
   String get user => _user.value?.email;
 
   int counter = 0;
+
+  final LocalStorageData localStorageData = Get.find();
   @override
   void onInit() {
     // ignore: todo
     // TODO: implement onInit
     super.onInit();
+    //print(_auth.currentUser);
     _user.bindStream(_auth.authStateChanges());
+    if(_auth.currentUser != null)
+      {
+        getCurrentUserData(_auth.currentUser.uid);
+      }
   }
+
 
   @override
   void onReady() {
@@ -68,7 +78,7 @@ class AuthViewModel extends GetxController {
 
     await _auth.signInWithCredential(credential).then((user) {
       saveUser(user);
-      Get.offAll(HomeView());
+      Get.offAll(ControlView());
     });
   }
 
@@ -89,7 +99,11 @@ class AuthViewModel extends GetxController {
 
   void signInWithEmailAndPassword() async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      await _auth
+          .signInWithEmailAndPassword(email: email, password: password)
+          .then((value) async {
+        getCurrentUserData(value.user.uid);
+      });
       Get.offAll(HomeView());
     } catch (e) {
       // ignore: avoid_print
@@ -105,9 +119,9 @@ class AuthViewModel extends GetxController {
       await _auth
           .createUserWithEmailAndPassword(email: email, password: password)
           .then((user) async {
-        saveUser(user);
+            saveUser(user);
       });
-      Get.offAll(HomeView());
+      Get.offAll(ControlView());
     } catch (e) {
       print(e.message);
       Get.snackbar(
@@ -120,11 +134,24 @@ class AuthViewModel extends GetxController {
   }
 
   void saveUser(UserCredential user) async {
-    await FireStoreUser().addUserToFireStore(UserModel(
+    UserModel userModel = UserModel(
       userId: user.user.uid,
       email: user.user.email,
       name: name == null ? user.user.displayName : name,
       pic: '',
-    ));
+    );
+    await FireStoreUser().addUserToFireStore(userModel);
+    setUser(userModel);
+  }
+
+  void getCurrentUserData(String uid) async
+  {
+    await FireStoreUser().getCurrentUser(uid).then((value){
+      setUser(UserModel.fromJson(value.data()));
+    });
+  }
+
+  void setUser(UserModel userModel)async{
+    await localStorageData.setUser(userModel);
   }
 }
